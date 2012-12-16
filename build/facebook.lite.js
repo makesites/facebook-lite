@@ -24,7 +24,6 @@ function Facebook()
 	
 	// check if there's already an access token...
 	this.auth = ( checkCookie("fb.lite") ) ? JSON.parse( getCookie("fb.lite") ) : false;
-	console.log( this.auth );
 	//if( !auth) return false;
 }
 
@@ -41,7 +40,6 @@ Facebook.prototype.init = function(options)
     // type: app, web, client
 	options.type || ( options.type = "app"); 
 	
-	console.log(options.type);
 	// set redirect uri
 	if( options.type == "app" && typeof options.namespace != "undefined" ){
 		options.redirect_uri = "https://apps.facebook.com/"+ namespace +"/"
@@ -143,6 +141,9 @@ Facebook.prototype.ui = function(options, callback){
 
 Facebook.prototype.api = function(){
     var service, method, options, callback;
+	// get the access token
+	var access_token = this.auth.authResponse.accessToken;
+	
     // define parameters
     switch(arguments.length){
         case 0:
@@ -175,7 +176,7 @@ Facebook.prototype.api = function(){
     method || (method = "get");
     options || (options = null);
     // set the token (check if the service has a questionmark)
-    var access_token = ((service.search("\\?") > -1 ) ? "&" : "?" ) + "access_token=" + this.accessToken;
+    var access_token = ((service.search("\\?") > -1 ) ? "&" : "?" ) + "access_token=" + access_token;
     
 	var url = "https://graph.facebook.com/"+ service + access_token;
 	var req = new XMLHttpRequest();
@@ -259,7 +260,7 @@ Facebook.prototype.window = function( url )
 
 // Internal methods
 // - standard AJAX request
-Facebook.prototype._ajax = function( url, options, callback)
+Facebook.prototype.ajax = function( url, options, callback)
 {
 	// setting fallbacks
 	url || (url = false);
@@ -298,7 +299,7 @@ Facebook.prototype._ajax = function( url, options, callback)
 }
 
 // - format a date object for api requests
-Facebook.prototype._date = function(date)
+Facebook.prototype.date = function(date)
 {
     var y = date.getFullYear(),
         m = date.getMonth()+1,
