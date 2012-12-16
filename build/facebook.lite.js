@@ -1,74 +1,147 @@
-// Facebook Lite
-// Lightweight JavaScript SDK for the Facebook API 
-// 
-// Created by Makis Tracend (@tracend)
-// MIT licensed
-
-/*
+/* 
+ * Facebook Lite
+ * Lightweight JavaScript SDK for the Facebook API 
+ * 
+ * Created by Makis Tracend (@tracend)
+ * Published at Makesites.org - http://github.com/makesites/facebook-lite
+ * 
+ * MIT licensed
+ * 
  * "original methods": ["Data", "Data.query", "Data.waitOn", "Dom", "Dom.addCssRules", "Event", "Event.subscribe", "Event.unsubscribe", "Insights", "Insights.impression", "Music", "Music.flashCallback", "Music.init", "Music.send", "Payment", "Payment.init", "Payment.setSize", "UA", "UA.nativeApp", "XD", "XD.onMessage", "XFBML", "XFBML.parse", "api", "getAccessToken", "getAuthResponse", "getLoginStatus", "getUserID", "init", "login", "logout", "ui"]
  */
 
 // Don't include if the namespace is taken (by the official lib?)
 window.FB || (function(window) {
 
+// configuration 
+var config = {
+}
+
 function Facebook()
 {
-
+	
+	// setup css 
+	
+	// check if there's already an access token...
+	this.auth = ( checkCookie("fb.lite") ) ? JSON.parse( getCookie("fb.lite") ) : false;
+	console.log( this.auth );
+	//if( !auth) return false;
 }
 
 Facebook.prototype.init = function(options)
 {
+	
+	// if logging check the query
+	if( options.logging === true && window.location.hash.search("access_token") > -1 ){
+		this.parseResponse( window.location.href );
+	}
+	
+	// appId
     
-    
-    // authorize...
-    //this.auth(options);
-    
-    
+    // type: app, web, client
+	options.type || ( options.type = "app"); 
+	
+	console.log(options.type);
+	// set redirect uri
+	if( options.type == "app" && typeof options.namespace != "undefined" ){
+		options.redirect_uri = "https://apps.facebook.com/"+ namespace +"/"
+	}
+	
+	if( options.type == "web" ){
+		options.redirect_uri = window.location.origin
+	}
+	
+    /*
+	// check
+	switch( options.type ){
+		case "app":
+			options.authorize = "https://www.facebook.com/dialog/oauth/";
+		break;
+		case "desktop":
+			options.authorize = 
+		break;
+		case "mobile":
+			options.authorize = 
+		break;
+		default:
+			options.authorize = 
+		break;
+	}
+	*/
+	
+  
+	// save options for later
+	this.options = options;
+	
 }
+  
+Facebook.prototype.getLoginStatus = function( callback ){
+	// access cookie
+	return callback( this.auth );
+};
 
-Facebook.prototype.auth = function(options){
+Facebook.prototype.login = function(callback, options){
 	
 	var self = this;
 	
-    this.client_id = options.appId || 0;
-	this.redirect_uri = "https://www.facebook.com/connect/login_success.html";
-	this.display = options.display || "touch";
-    
+    var client_id = this.options.appId || false;
+	var redirect_uri = this.options.redirect_uri || "https://www.facebook.com/connect/login_success.html";
+	// scope: 'email,user_likes'
+	var scope = options.scope || false;
+	// display: page, popup, iframe, or touch
+	var display = options.display || "page";
+	var auth_type = options.auth_type || false;
+	
+	
     // exit now if no app id is supplied
-    if(!this.client_id) return;
-    
-	var authorize_url   = "https://graph.facebook.com/oauth/authorize?"
-                        + "client_id=" + this.client_id
-                        + "&redirect_uri=" + this.redirect_uri
-                        + "&display="+ this.display
-                        + "&type=user_agent";
-
-	//window.location(authorize_url);
-	//window.location.onLocationChange = function(loc){self.onLocationChange(loc);};
-    
-	this.ajax(authorize_url, false, this.onLocationChange )
+    if(!client_id) return;
 	
-}
+	// return existing auth unless reauthenticate if needed...
+	if( this.auth && auth_type != 'reauthenticate') return callback( this.auth );
 
-Facebook.prototype.onLocationChange = function(newLoc)
-{
-	if(newLoc.indexOf(this.redirect_uri) == 0)
-	{
-		var result = unescape(newLoc).split("#")[1];
-		result = unescape(result);
-		
-		// TODO: Error Check
-		this.accessToken = result.split("&")[0].split("=")[1];		
-		//this.expiresIn = result.split("&")[1].split("=")[1];
+    // assemble authorization URL
+	var url   = "https://www.facebook.com/dialog/oauth/?"
+                        + "client_id=" + client_id
+                        + "&redirect_uri=" + encodeURIComponent(redirect_uri)
+                        + "&display="+ display
+						+ "&response_type=token";
+                        //+ "&type=user_agent";
 	
-		window.close();
-		this.onConnect();
-		
-	}
-}
+	// add scope
+	if( scope ) url += "&scope=" + scope;
+                        
+	// open the login url
+	this.window( url );
+	
+	// save the callback for later
+	this.callback = callback;
+	
+};
 
-Facebook.prototype.api = function()
-{
+Facebook.prototype.ui = function(options, callback){
+	// ui dialogues
+	/*
+	Example: 
+	FB.ui(
+	  {
+		method: 'feed',
+		name: 'Facebook Dialogs',
+		link: 'http://developers.facebook.com/docs/reference/dialogs/',
+		picture: 'http://fbrell.com/f8.jpg',
+		caption: 'Reference Documentation',
+		description: 'Dialogs provide a simple, consistent interface for applications to interface with users.'
+	  },
+	  function(response) {
+		if (response && response.post_id) {
+		  alert('Post was published.');
+		} else {
+		  alert('Post was not published.');
+		}
+	  }
+	); */
+};
+
+Facebook.prototype.api = function(){
     var service, method, options, callback;
     // define parameters
     switch(arguments.length){
@@ -130,7 +203,63 @@ Facebook.prototype.api = function()
     }
 }
 
-Facebook.prototype.ajax = function( url, options, callback)
+/*
+
+  YOUR_REDIRECT_URI#
+  access_token=USER_ACCESS_TOKEN
+  &expires_in=NUMBER_OF_SECONDS_UNTIL_TOKEN_EXPIRES
+  
+   YOUR_REDIRECT_URI?
+  error_reason=user_denied
+  &error=access_denied
+  &error_description=The+user+denied+your+request.
+  
+*/
+Facebook.prototype.parseResponse = function(query)
+{
+
+	var result = unescape(query).split("#")[1];
+	result = unescape(result);
+	
+	// TODO: Error Check
+	var accessToken = result.split("&")[0].split("=")[1];		
+	var expiresIn = result.split("&")[1].split("=")[1];
+
+	var response = {
+		status: 'connected',
+		authResponse: {
+			accessToken: accessToken,
+			expiresIn: expiresIn
+		}
+	}
+	
+	// save response 
+	setCookie("fb.lite", JSON.stringify( response ), expiresIn);
+	
+	// keep the response in memory
+	this.auth = response;
+	
+	// continue...
+	//this.callback( this.auth );
+	
+}
+
+Facebook.prototype.noConnection = function()
+{
+	navigator.notification.alert("Unfortunately your request to the server has failed... Please try again later.", null, "No Connection");
+}
+
+
+// window method - override with custom logic if needed
+Facebook.prototype.window = function( url )
+{
+	window.location = url;
+}
+
+
+// Internal methods
+// - standard AJAX request
+Facebook.prototype._ajax = function( url, options, callback)
 {
 	// setting fallbacks
 	url || (url = false);
@@ -168,8 +297,8 @@ Facebook.prototype.ajax = function( url, options, callback)
 	
 }
 
-// fomrat a date object for api requests
-Facebook.prototype.date = function(date)
+// - format a date object for api requests
+Facebook.prototype._date = function(date)
 {
     var y = date.getFullYear(),
         m = date.getMonth()+1,
@@ -185,16 +314,6 @@ Facebook.prototype.date = function(date)
                 
 }
 
-Facebook.prototype.getLoginStatus = function(callback)
-{
-    // request login status
-    //this.api(options, callback);
-}
-
-Facebook.prototype.noConnection = function()
-{
-	navigator.notification.alert("Unfortunately your request to the server has failed... Please try again later.", null, "No Connection");
-}
 
 // Helpers
 function JSON_serialize( obj ){
@@ -207,6 +326,36 @@ function JSON_serialize( obj ){
     
     return str;
 }
+
+
+// - cookies
+getCookie = function(name) {
+	var i,key,value,cookies=document.cookie.split(";");
+	for (i=0;i<cookies.length;i++){
+		key=cookies[i].substr(0,cookies[i].indexOf("="));
+		value=cookies[i].substr(cookies[i].indexOf("=")+1);
+		key=key.replace(/^\s+|\s+$/g,"");
+		if (key==name){
+			return unescape(value);
+		}
+	}
+}
+	
+setCookie = function(name,val,expiry){
+	var date = new Date( ( new Date() ).getTime() + parseInt(expiry) );
+	var value=escape(val) + ((expiry==null) ? "" : "; expires="+date.toUTCString());
+	document.cookie=name + "=" + value;
+}
+	
+checkCookie = function( name ){
+	var cookie=getCookie( name );
+	if (cookie!=null && cookie!=""){
+		return true;
+	} else {
+		return false;
+	}
+}
+
 
 FB = new Facebook();
 
