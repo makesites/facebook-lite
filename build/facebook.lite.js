@@ -25,6 +25,7 @@ function Facebook()
 	// check if there's already an access token...
 	this.auth = ( checkCookie("fb.lite") ) ? JSON.parse( getCookie("fb.lite") ) : false;
 	//if( !auth) return false;
+	this.promise = new Promise( this );
 }
 
 Facebook.prototype.init = function(options)
@@ -46,7 +47,7 @@ Facebook.prototype.init = function(options)
 	}
 	
 	if( options.type == "web" ){
-		options.redirect_uri = window.location.origin
+		options.redirect_uri = window.location.origin;
 	}
 	
     /*
@@ -90,12 +91,16 @@ Facebook.prototype.login = function(callback, options){
 	var display = options.display || "page";
 	var auth_type = options.auth_type || false;
 	
-	
     // exit now if no app id is supplied
     if(!client_id) return;
 	
 	// return existing auth unless reauthenticate if needed...
-	if( this.auth && auth_type != 'reauthenticate') return callback( this.auth );
+	if( this.auth && auth_type != 'reauthenticate') { 
+		return callback( this.auth );
+	} else {
+		// save the callback for later
+		this.promise.add( callback );
+	}
 
     // assemble authorization URL
 	var url   = "https://www.facebook.com/dialog/oauth/?"
@@ -110,9 +115,6 @@ Facebook.prototype.login = function(callback, options){
                         
 	// open the login url
 	this.window( url );
-	
-	// save the callback for later
-	this.callback = callback;
 	
 };
 
@@ -241,6 +243,7 @@ Facebook.prototype.parseResponse = function(query)
 	this.auth = response;
 	
 	// continue...
+	this.promise.resolve( this.auth );
 	//this.callback( this.auth );
 	
 }
@@ -358,6 +361,34 @@ checkCookie = function( name ){
 }
 
 
+	function Promise (obj) {
+        var args = null;
+        var callbacks = [];
+        var resolved = false;
+        
+        this.add = function(callback) {
+            if (resolved) {
+                callback.apply(obj, args);
+            } else {
+                callbacks.push(callback);
+            }
+        },
+        
+        this.resolve = function() {
+            if (!resolved) {            
+                args = arguments;
+                resolved = true;
+                
+                var callback;
+                while (callback = callbacks.shift()) {
+                    callback.apply(obj, arguments);
+                }
+                
+                callbacks = null;
+            }
+        }
+    };
+	
 FB = new Facebook();
 
 })(window);
