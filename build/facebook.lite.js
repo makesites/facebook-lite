@@ -34,6 +34,8 @@ Facebook.prototype.init = function(options)
 	// if logging check the query
 	if( options.logging === true && window.location.hash.search("access_token") > -1 ){
 		this.parseResponse( window.location.href );
+		// remove the hash (return to home)
+		window.location.hash = "#"
 	}
 	
 	// appId
