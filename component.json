@@ -1,0 +1,16 @@
+{
+	"name": "facebook.lite",
+	"version": "0.1.0",
+	"main": "./build/facebook.lite-min.js",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/makesites/facebook-lite.git"
+	},
+	"licenses": [
+	{
+		"type": "MIT license",
+		"url": "http://www.makesites.org/licenses/MIT"
+	}
+	],
+	"dependencies": {}
+}

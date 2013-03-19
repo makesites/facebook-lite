@@ -1,0 +1,25 @@
+{
+    "name": "facebook.lite",
+    "version": "0.1.0",
+	"author": "makesites",
+	"homepage": "https://github.com/makesites/facebook-lite",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/makesites/facebook-lite.git"
+	},
+	"licenses": [
+	{
+		"type": "MIT license",
+		"url": "http://www.makesites.org/licenses/MIT"
+	}
+	],
+    "engine" : {
+        "node" : "0.8.x"
+    },
+    "devDependencies" : {
+        "commander" : "~0.5",
+		"jshint" : "~0.9",
+        "uglify-js2" : "~2.1",
+		"hbs" : "~1.0"
+    }
+}
