@@ -4,7 +4,7 @@ var FILE_ENCODING = 'utf-8',
  
 // Dependencies
 var _cli = require('commander'),
-	_uglify = require("uglify-js2"), 
+	_uglify = require("uglify-js"), 
     _jshint = require('jshint'),
 	_handlebars = require('hbs'), 
     _fs = require('fs');
@@ -29,6 +29,7 @@ concat({
 		'lib/login.js',
 		'lib/api.js',
 		'lib/ui.js',
+		//'lib/utils.js',
 		'lib/utils-ajax.js',
 		'lib/utils-cookies.js',
 		'lib/utils-misc.js',
@@ -83,8 +84,8 @@ function uglify(srcPath, distPath) {
     ast = pro.ast_squeeze(ast);
  	*/
 	
-	var result = _uglify.minify(srcPath, { compressor: {
-		comments : true
+	var result = _uglify.minify(srcPath, { options: { 
+		comments : /@license|@preserve/
 	} });
 	
     _fs.writeFileSync(distPath, result.code, FILE_ENCODING);

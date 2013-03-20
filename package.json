@@ -17,9 +17,9 @@
         "node" : "0.8.x"
     },
     "devDependencies" : {
-        "commander" : "~0.5",
-		"jshint" : "~0.9",
-        "uglify-js2" : "~2.1",
-		"hbs" : "~1.0"
+        "commander" : "1.x",
+		"jshint" : "1.x",
+        "uglify-js" : "2.x",
+		"hbs" : "1.x"
     }
 }
