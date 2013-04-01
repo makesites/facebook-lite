@@ -24,13 +24,15 @@ _handlebars.registerHelper('license', function(items){
 concat({
     src : [
 		'lib/_start.js',
+		'lib/options.js',
 		'lib/constructor.js',
 		'lib/init.js',
 		'lib/events.js',
 		'lib/login.js',
 		'lib/api.js',
+		'lib/ua.js',
 		'lib/ui.js',
-		'lib/utils.js',
+		//'lib/utils.js',
 		'lib/utils-ajax.js',
 		'lib/utils-cookies.js',
 		'lib/utils-misc.js',
