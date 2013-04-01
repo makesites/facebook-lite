@@ -1,6 +1,6 @@
 {
-    "name": "facebook.lite",
-    "version": "0.1.0",
+    "name": "facebook-lite",
+    "version": "0.2.0",
 	"author": "makesites",
 	"homepage": "https://github.com/makesites/facebook-lite",
 	"repository": {
@@ -16,6 +16,9 @@
     "engine" : {
         "node" : "0.8.x"
     },
+	"dependencies" : {
+		"node-XMLHttpRequest" : "1.x"
+	}, 
     "devDependencies" : {
         "commander" : "1.x",
 		"jshint" : "1.x",
